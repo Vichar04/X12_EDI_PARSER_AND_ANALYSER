@@ -69,6 +69,55 @@ app.post("/getSummary", async (req, res) => {
       req.parseEDIJson ||
       req.body;
 
+    function getDocumentTypeSpecificPrompt(parseEDIJson) {
+      // Try to determine document type from the data
+      const docType =
+        parseEDIJson.documentType ||
+        parseEDIJson.transactionType ||
+        parseEDIJson.transactionSet ||
+        "unknown";
+
+      let typeSpecificInstructions = "";
+
+      if (docType.includes("837") || parseEDIJson.claims) {
+        typeSpecificInstructions = `
+Focus on these 837 claim details:
+- Patient name and demographics
+- Subscriber/insured information
+- Provider details (rendering, referring, billing)
+- Claim dates (service, admission, discharge)
+- Diagnosis codes and descriptions
+- Procedure codes with modifiers
+- Charge amounts and claim totals
+- Claim status`;
+      } else if (docType.includes("835") || parseEDIJson.payments) {
+        typeSpecificInstructions = `
+Focus on these 835 payment details:
+- Payer information
+- Payee/provider details
+- Total payment amount
+- Check/EFT number and date
+- Individual claim payments
+- Adjustment amounts and reasons
+- Patient responsibility amounts`;
+      } else if (docType.includes("834") || parseEDIJson.enrollment) {
+        typeSpecificInstructions = `
+Focus on these 834 enrollment details:
+- Member name and demographics
+- Subscriber information
+- Coverage type (medical, dental, vision)
+- Effective dates (coverage start/end)
+- Plan details and benefits
+- Premium amounts
+- Member status (active/terminated)`;
+      }
+
+      return typeSpecificInstructions;
+    }
+
+    // Get the document-specific prompt
+    const docSpecificPrompt = getDocumentTypeSpecificPrompt(parseEDIJson);
+
     const axiosResponse = await axios.post("http://localhost:11434/api/chat", {
       model: "llama3:8b",
       messages: [
@@ -83,7 +132,8 @@ Key requirements:
 4. Use plain English, avoid technical EDI jargon
 5. Focus on what a healthcare professional would need to understand
 6. If any critical data is missing, mention what should be there
-7. Keep the summary concise but comprehensive`,
+7. Keep the summary concise but comprehensive
+8. **CRITICAL: Convert ALL dates to human-readable format (MM/DD/YYYY or Month DD, YYYY)**`,
         },
         {
           role: "user",
@@ -92,28 +142,35 @@ Key requirements:
 Here's the parsed EDI JSON data:
 ${JSON.stringify(parseEDIJson, null, 2)}
 
+**IMPORTANT DATE FORMATTING REQUIREMENTS:**
+- Convert all dates from any format (YYYYMMDD, YYYY-MM-DD, etc.) to **MM/DD/YYYY** format
+- Example: "20240115" should become "01/15/2024"
+- Example: "2024-01-15" should become "01/15/2024"
+- If you see dates like "D8" or other EDI date formats, convert them properly
+- Always specify what each date represents (Service Date, Process Date, Effective Date, etc.)
+
 Please provide a summary that includes:
 
 1. **Document Overview**
    - Document type (837/835/834)
    - File/Control number
-   - Date of processing
+   - Date of processing (in MM/DD/YYYY format)
    - Sender/Receiver information
 
 2. **Key Information** (based on document type):
-   - For 837 (Claims): Patient info, provider details, services rendered, amounts
-   - For 835 (Payments): Payment details, claim adjustments, patient responsibility
-   - For 834 (Enrollments): Member info, coverage details, effective dates
+   ${docSpecificPrompt}
 
 3. **Financial Summary** (if applicable)
    - Total amounts
    - Payment breakdowns
    - Any adjustments
 
-4. **Important Dates**
+4. **Important Dates** (ALL in MM/DD/YYYY format)
    - Service dates
    - Transaction dates
    - Effective dates
+   - Termination dates
+   - Process dates
 
 5. **Status Information**
    - Claim status
@@ -127,7 +184,6 @@ Format the response in clear sections with bullet points for easy reading. Start
       // Add temperature to control creativity (lower = more focused)
       temperature: 0.3,
     });
-
     console.log(axiosResponse.data);
 
     res.status(200).json(axiosResponse.data);
