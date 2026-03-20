@@ -39,4 +39,25 @@ function parseEDIString(rawEdi) {
   return parse834(rawEdi);
 }
 
+/* ======================================================================
+ *  CLI convenience — run directly:  node index.js path/to/file.edi
+ * ====================================================================== */
+if (require.main === module) {
+  const [,, filePath] = process.argv;
+
+  if (!filePath) {
+    console.error('Usage: node index.js <path-to-edi-file>');
+    process.exit(1);
+  }
+
+  try {
+    const result = parseEDI(filePath, { isFilePath: true });
+    console.log(JSON.stringify(result, null, 2));
+  } catch (err) {
+    console.error('Parse failed:', err.message);
+    process.exit(1);
+  }
+}
+
+module.exports = { parseEDI };
 module.exports = { parseEDI, parseEDIString };

@@ -1,10 +1,11 @@
 import "./App.css";
 import MiniDrawer from "./components/Sidebar";
+import EDIStudio from "./components/Ediapp";
 
 function App() {
   return (
     <>
-      <MiniDrawer />
+      <EDIStudio />
     </>
   );
 }
