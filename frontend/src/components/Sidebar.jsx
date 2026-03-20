@@ -147,7 +147,7 @@ export default function MiniDrawer() {
         </DrawerHeader>
         <Divider />
         <List>
-          {["Inbox", "Starred", "Send email", "Drafts"].map((text, index) => (
+          {["Home", "Upload", "Actions", "AI Chat"].map((text, index) => (
             <ListItem key={text} disablePadding sx={{ display: "block" }}>
               <ListItemButton
                 sx={[
@@ -179,59 +179,14 @@ export default function MiniDrawer() {
                         },
                   ]}
                 >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText
-                  primary={text}
-                  sx={[
-                    open
-                      ? {
-                          opacity: 1,
-                        }
-                      : {
-                          opacity: 0,
-                        },
-                  ]}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-        <List>
-          {["All mail", "Trash", "Spam"].map((text, index) => (
-            <ListItem key={text} disablePadding sx={{ display: "block" }}>
-              <ListItemButton
-                sx={[
-                  {
-                    minHeight: 48,
-                    px: 2.5,
-                  },
-                  open
-                    ? {
-                        justifyContent: "initial",
-                      }
-                    : {
-                        justifyContent: "center",
-                      },
-                ]}
-              >
-                <ListItemIcon
-                  sx={[
-                    {
-                      minWidth: 0,
-                      justifyContent: "center",
-                    },
-                    open
-                      ? {
-                          mr: 3,
-                        }
-                      : {
-                          mr: "auto",
-                        },
-                  ]}
-                >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                  {index === 0 ? <i class="fa-solid fa-house"></i> : <></>}
+                  {index === 1 ? <i class="fa-solid fa-upload"></i> : <></>}
+                  {index === 2 ? (
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  ) : (
+                    <></>
+                  )}
+                  {index === 3 ? <i class="fa-solid fa-robot"></i> : <></>}
                 </ListItemIcon>
                 <ListItemText
                   primary={text}
@@ -252,34 +207,106 @@ export default function MiniDrawer() {
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <DrawerHeader />
+        <h1 className="text-2xl font-bold">
+          AI-Powered X12 EDI Parser & Validator
+        </h1>
         <Typography sx={{ marginBottom: 2 }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Rhoncus
-          dolor purus non enim praesent elementum facilisis leo vel. Risus at
-          ultrices mi tempus imperdiet. Semper risus in hendrerit gravida rutrum
-          quisque non tellus. Convallis convallis tellus id interdum velit
-          laoreet id donec ultrices. Odio morbi quis commodo odio aenean sed
-          adipiscing. Amet nisl suscipit adipiscing bibendum est ultricies
-          integer quis. Cursus euismod quis viverra nibh cras. Metus vulputate
-          eu scelerisque felis imperdiet proin fermentum leo. Mauris commodo
-          quis imperdiet massa tincidunt. Cras tincidunt lobortis feugiat
-          vivamus at augue. At augue eget arcu dictum varius duis at consectetur
-          lorem. Velit sed ullamcorper morbi tincidunt. Lorem donec massa sapien
-          faucibus et molestie ac.
+          Transform complex healthcare EDI files into clear, structured insights
+          — detect errors instantly, understand them in plain English, and fix
+          them with AI assistance.
         </Typography>
+
+        <h2 className="text-xl font-semibold">About the Platform</h2>
         <Typography sx={{ marginBottom: 2 }}>
-          Consequat mauris nunc congue nisi vitae suscipit. Fringilla est
-          ullamcorper eget nulla facilisi etiam dignissim diam. Pulvinar
-          elementum integer enim neque volutpat ac tincidunt. Ornare suspendisse
-          sed nisi lacus sed viverra tellus. Purus sit amet volutpat consequat
-          mauris. Elementum eu facilisis sed odio morbi. Euismod lacinia at quis
-          risus sed vulputate odio. Morbi tincidunt ornare massa eget egestas
-          purus viverra accumsan in. In hendrerit gravida rutrum quisque non
-          tellus orci ac. Pellentesque nec nam aliquam sem et tortor. Habitant
-          morbi tristique senectus et. Adipiscing elit duis tristique
-          sollicitudin nibh sit. Ornare aenean euismod elementum nisi quis
-          eleifend. Commodo viverra maecenas accumsan lacus vel facilisis. Nulla
-          posuere sollicitudin aliquam ultrices sagittis orci a.
+          Healthcare data exchange relies heavily on X12 Electronic Data
+          Interchange (EDI) — the backbone of claims processing, payments, and
+          member enrollment in the US healthcare system. However, these files
+          are difficult to read, validate, and debug due to their complex,
+          delimiter-based structure and strict compliance rules. Our platform
+          simplifies this process by converting raw EDI files into a structured,
+          interactive, and human-readable format, enabling developers, billing
+          teams, and administrators to quickly understand and resolve issues.
+        </Typography>
+
+        <h2 className="text-xl font-semibold">The Problem We Solve</h2>
+        <Typography sx={{ marginBottom: 2 }}>
+          Processing EDI files manually is time-consuming and error-prone. Even
+          a small mistake — such as an invalid code, missing segment, or
+          incorrect identifier — can lead to:
+          <ul style={{ listStyleType: "disc", marginLeft: "20px" }}>
+            <li>Claim rejections and delayed payments</li>
+            <li>Enrollment failures leaving members uninsured</li>
+            <li>Increased operational costs</li>
+            <li>Hours of manual debugging</li>
+          </ul>
+          Our solution eliminates these inefficiencies by providing real-time
+          validation and intelligent insights.
+        </Typography>
+
+        <h2 className="text-xl font-semibold">What Our Platform Does</h2>
+        <Typography sx={{ marginBottom: 2 }}>
+          <ol style={{ listStyleType: "decimal", marginLeft: "20px" }}>
+            <li>
+              <b>Smart File Ingestion:</b> Upload any X12 EDI file (837, 835, or
+              834), and our system automatically detects its type and extracts
+              key metadata.
+            </li>
+            <li>
+              <b>Interactive EDI Parser:</b> Visualize the entire EDI structure
+              in a collapsible tree format, making it easy to explore segments,
+              loops, and elements without reading raw text.
+            </li>
+            <li>
+              <b>Advanced Validation Engine:</b> Our rule-based engine checks
+              for: Missing required segments Invalid formats (dates, NPIs,
+              codes) Cross-field inconsistencies Transaction-specific compliance
+              errors All issues are clearly highlighted with precise locations.
+            </li>
+            <li>
+              <b>AI-Powered Error Explanation:</b> No more cryptic errors. Our
+              AI assistant translates technical validation issues into simple,
+              actionable explanations.
+            </li>
+            <li>
+              <b>Intelligent Fix Suggestions:</b> For common errors, the
+              platform suggests corrections that you can apply instantly —
+              reducing debugging time significantly.
+            </li>
+            <li>
+              <b>Transaction Insights:</b> View claim payments, adjustments, and
+              patient responsibility and Track member additions, updates, and
+              terminations
+            </li>
+          </ol>
+        </Typography>
+
+        <h2 className="text-xl font-semibold">Who is this for?</h2>
+        <Typography sx={{ marginBottom: 2 }}>
+          <ul style={{ listStyleType: "disc", marginLeft: "20px" }}>
+            <li>Medical Billing Specialists</li>
+            <li>Healthcare Developers</li>
+            <li>Insurance Providers</li>
+            <li>HR & Benefits Teams</li>
+            <li>Healthcare IT Companies</li>
+          </ul>
+        </Typography>
+
+        <h2 className="text-xl font-semibold">Why Choose Us?</h2>
+        <Typography sx={{ marginBottom: 2 }}>
+          <ul style={{ listStyleType: "disc", marginLeft: "20px" }}>
+            <li>Instant parsing & validation</li>
+            <li>AI-powered explanations</li>
+            <li>Visual and intuitive interface</li>
+            <li>Deep error insights</li>
+            <li>Built for speed and accuracy</li>
+          </ul>
+        </Typography>
+
+        <h2 className="text-xl font-semibold">Our Mission</h2>
+        <Typography sx={{ marginBottom: 2 }}>
+          To simplify healthcare data processing by making EDI files
+          transparent, understandable, and error-free, empowering teams to work
+          faster and more efficiently.
         </Typography>
       </Box>
     </Box>
