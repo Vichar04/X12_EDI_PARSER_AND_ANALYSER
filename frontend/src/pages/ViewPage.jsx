@@ -178,7 +178,16 @@ const ViewPage = () => {
                     const boxWidth = 250;
 
                     return (
-                      <g onClick={toggleNode} className="cursor-pointer transition-all hover:opacity-80">
+                      <g 
+                        onClick={toggleNode} 
+                        className="cursor-pointer transition-all hover:opacity-80"
+                        onMouseEnter={(e) => {
+                          const wrapper = e.currentTarget.parentNode;
+                          if (wrapper && wrapper.parentNode) {
+                            wrapper.parentNode.appendChild(wrapper);
+                          }
+                        }}
+                      >
                         {/* Left connecting dot (incoming line arrives here) */}
                         <circle r="6" fill="#000000" />
                         
