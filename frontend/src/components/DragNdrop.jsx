@@ -6,7 +6,7 @@ import axios from "axios";
 // ── Change this to your real API base URL ─────────────────────────────────
 // ──────────────────────────────────────────────────────────────────────────
 
-const ALLOWED_EXTENSIONS = [".txt", ".edi", ".dat", ".x12", ".zip"];
+const ALLOWED_EXTENSIONS = [".txt", ".edi", ".dat", ".x12"];
 
 const isFileAllowed = (file) => {
   const name = file.name.toLowerCase();
@@ -90,7 +90,7 @@ const DragNdrop = ({ onUploadSuccess, className = "" }) => {
           <div>
             <p className="text-lg font-medium">Drag &amp; drop a file here</p>
             <p className="text-sm text-gray-400">
-              Supported: .txt, .edi, .x12, .zip &nbsp;·&nbsp; one file only
+              Supported: .edi, .txt, .x12 &nbsp;·&nbsp; one file only · X12 837 only
             </p>
           </div>
 
@@ -99,7 +99,7 @@ const DragNdrop = ({ onUploadSuccess, className = "" }) => {
             hidden
             id="browse"
             onChange={handleFileChange}
-            accept=".txt,.edi,.x12,.zip"
+            accept=".txt,.edi,.x12"
           />
           <label
             htmlFor="browse"
