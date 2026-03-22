@@ -10,8 +10,7 @@ const app = express();
 
 const allowedOrigins = [
   "https://x12-edi-parser-and-analyser.vercel.app",
-  "http://localhost:3000", // if you test locally
-  // add other frontend URLs you need
+  "http://localhost:5173" // keep this for local development
 ];
 
 app.use(cors({
