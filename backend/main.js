@@ -4,7 +4,24 @@ const multer = require("multer");
 const fs = require("fs");
 const axios = require("axios");
 const { parseEDI, validateEDI } = require("./src/parser/837_Parser");
+const cors = require("cors");
 const app = express();
+
+// Custom CORS middleware to guarantee correct headers
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
+
+// Ensure the uploads directory exists so multer doesn't crash
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -21,44 +38,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post("/parseEDIString", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      error: "No file was uploaded.",
-    });
-  }
+const txtRoute = require("./routes/txt");
+const ediRoute = require("./routes/edi");
+const datRoute = require("./routes/dat");
+const x12Route = require("./routes/x12");
 
-  const filePath = `./uploads/${req.file.filename}`;
-
-  try {
-    const parseEDIJson = parseEDI(filePath);
-    const { valid, errors, warnings } = validateEDI(parseEDIJson);
-
-    // Clean up the uploaded file after successful processing
-    fs.unlink(filePath, (err) => {
-      if (err) console.error("Error deleting file:", err);
-    });
-
-    res.status(200).json({
-      success: true,
-      parseEDIJson,
-      valid,
-      errors,
-      warnings,
-    });
-  } catch (err) {
-    // Clean up the uploaded file even if parsing fails
-    fs.unlink(filePath, (unlinkErr) => {
-      if (unlinkErr) console.error("Error deleting file:", unlinkErr);
-    });
-
-    res.status(400).json({
-      success: false,
-      error: err.message || "An error occurred while parsing the EDI file.",
-    });
-  }
-});
+app.use("/txt", upload.single("file"), txtRoute);
+app.use("/edi", upload.single("file"), ediRoute);
+app.use("/dat", upload.single("file"), datRoute);
+app.use("/x12", upload.single("file"), x12Route);
 
 app.post("/getSummary", async (req, res) => {
   try {

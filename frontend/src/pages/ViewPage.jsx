@@ -43,7 +43,7 @@ const ViewPage = () => {
 
   return (
     <div className="px-4 py-10">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-8">
 
         {/* Top bar */}
         <div className="flex items-center justify-between">
@@ -59,45 +59,53 @@ const ViewPage = () => {
           </button>
         </div>
 
-        {/* Validation status */}
-        <Section title="Validation">
-          <div className="flex items-center gap-3">
-            <Badge ok={valid} />
-            {errors.length === 0 && warnings.length === 0 && (
-              <span className="text-sm text-muted-foreground">No issues found</span>
-            )}
+        {/* Two-column layout with sidebar */}
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          
+          {/* Sidebar Section */}
+          <div className="w-full md:w-1/3 flex flex-col gap-6">
+            <Section title="Validation">
+              <div className="flex items-center gap-3">
+                <Badge ok={valid} />
+                {errors.length === 0 && warnings.length === 0 && (
+                  <span className="text-sm text-muted-foreground">No issues found</span>
+                )}
+              </div>
+
+              {errors.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {errors.map((e, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-red-500">
+                      <AiOutlineCloseCircle className="mt-0.5 shrink-0" />
+                      {e}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {warnings.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {warnings.map((w, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-yellow-500">
+                      <AiOutlineWarning className="mt-0.5 shrink-0" />
+                      {w}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
           </div>
 
-          {errors.length > 0 && (
-            <ul className="mt-2 space-y-1">
-              {errors.map((e, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-red-500">
-                  <AiOutlineCloseCircle className="mt-0.5 shrink-0" />
-                  {e}
-                </li>
-              ))}
-            </ul>
-          )}
+          {/* Main Content Section */}
+          <div className="w-full md:w-2/3 flex flex-col gap-6">
+            <Section title="Parsed EDI Data">
+              <pre className="text-xs bg-muted rounded-lg p-4 overflow-auto max-h-[70vh] leading-relaxed">
+                {JSON.stringify(parseEDIJson, null, 2)}
+              </pre>
+            </Section>
+          </div>
 
-          {warnings.length > 0 && (
-            <ul className="mt-2 space-y-1">
-              {warnings.map((w, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-yellow-500">
-                  <AiOutlineWarning className="mt-0.5 shrink-0" />
-                  {w}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
-
-        {/* Raw parsed JSON */}
-        <Section title="Parsed EDI Data">
-          <pre className="text-xs bg-muted rounded-lg p-4 overflow-auto max-h-[55vh] leading-relaxed">
-            {JSON.stringify(parseEDIJson, null, 2)}
-          </pre>
-        </Section>
-
+        </div>
       </div>
     </div>
   );

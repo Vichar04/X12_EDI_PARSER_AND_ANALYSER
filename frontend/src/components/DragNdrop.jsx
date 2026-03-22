@@ -3,11 +3,11 @@ import { AiOutlineCloudUpload, AiOutlineCheckCircle } from "react-icons/ai";
 import { MdClear } from "react-icons/md";
 import axios from "axios";
 
-// ── Change this to your real API endpoint ──────────────────────────────────
-const API_URL = "https://localhost:6001/parseEDIString";
+// ── Change this to your real API base URL ─────────────────────────────────
+const API_BASE_URL = "http://localhost:6001";
 // ──────────────────────────────────────────────────────────────────────────
 
-const ALLOWED_EXTENSIONS = [".txt", ".edi", ".x12", ".zip"];
+const ALLOWED_EXTENSIONS = [".txt", ".edi", ".dat", ".x12", ".zip"];
 
 const isFileAllowed = (file) => {
   const name = file.name.toLowerCase();
@@ -52,11 +52,14 @@ const DragNdrop = ({ onUploadSuccess, className = "" }) => {
     setLoading(true);
     setError(null);
 
+    const ext = file.name.split('.').pop().toLowerCase();
+    const endpointUrl = `${API_BASE_URL}/${ext === 'zip' ? 'edi' : ext}`; // fallback for zip if needed, or just /ext
+
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const response = await axios.post(API_URL, formData, {
+      const response = await axios.post(endpointUrl, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       onUploadSuccess?.(response.data);
