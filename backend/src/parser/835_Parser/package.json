@@ -1,0 +1,15 @@
+{
+  "name": "edi835-parser",
+  "version": "1.0.0",
+  "description": "Production-ready EDI 835 Electronic Remittance Advice parser for Node.js",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test/parser.test.js"
+  },
+  "keywords": ["edi", "835", "remittance", "healthcare", "parser"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
