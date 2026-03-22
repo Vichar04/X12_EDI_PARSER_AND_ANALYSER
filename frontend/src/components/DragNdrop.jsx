@@ -54,7 +54,7 @@ const DragNdrop = ({ onUploadSuccess, className = "" }) => {
 
     const ext = file.name.split('.').pop().toLowerCase();
     const endpointUrl = `${import.meta.env.VITE_BACKEND_API_BASE_URL}/${ext === 'zip' ? 'edi' : ext}`; // fallback for zip if needed, or just /ext
-
+      
     const formData = new FormData();
     formData.append("file", file);
 
