@@ -147,14 +147,27 @@ const ViewPage = () => {
 
           {/* Right Column: D3 Tree */}
           <div className="w-full lg:w-2/3 h-full pb-4">
-            <Section title="EDI Tree Visualisation" className="h-full flex flex-col">
-              <div className="flex-1 w-full bg-slate-900 rounded-lg overflow-hidden border border-slate-700 relative text-black dark:text-white" style={{ minHeight: '500px' }}>
+            <Section title="EDI Tree Visualisation" className="h-full flex flex-col bg-white">
+              {/* Tree container background changed to white/slate-50 for a clean look */}
+              <div className="flex-1 w-full bg-slate-50 rounded-lg overflow-hidden border border-slate-200 relative text-black" style={{ minHeight: '500px' }}>
                 <Tree 
                   data={treeData} 
                   orientation="horizontal"
                   translate={{ x: 50, y: 300 }}
-                  nodeSize={{ x: 280, y: 60 }}
-                  depthFactor={240}
+                  nodeSize={{ x: 380, y: 120 }}
+                  depthFactor={380}
+                  pathClassFunc={() => 'stroke-slate-300'}
+                  pathFunc={(linkData) => {
+                    const { source, target } = linkData;
+                    // Start line from the right edge of parent box (x + boxWidth)
+                    const sX = source.y + 250; 
+                    const sY = source.x;
+                    // End line at the left edge of child (x)
+                    const tX = target.y;       
+                    const tY = target.x;
+                    
+                    return `M${sX},${sY}C${(sX + tX) / 2},${sY} ${(sX + tX) / 2},${tY} ${tX},${tY}`;
+                  }}
                   renderCustomNodeElement={(rd3tProps) => {
                     const { nodeDatum, toggleNode } = rd3tProps;
                     
@@ -162,78 +175,49 @@ const ViewPage = () => {
                                         (nodeDatum._children && nodeDatum._children.length > 0);
                     const isExpanded = nodeDatum.children && nodeDatum.children.length > 0;
                     
-                    const boxWidth = 200;
-                    const boxHeight = 44;
-                    const maxTextLen = 22;
-                    
-                    const displayName = nodeDatum.name.length > maxTextLen 
-                      ? nodeDatum.name.substring(0, maxTextLen - 3) + "..." 
-                      : nodeDatum.name;
-
-                    const attrsStr = nodeDatum.attributes 
-                      ? Object.entries(nodeDatum.attributes).map(([k, v]) => `${k}:${v}`).join(' | ')
-                      : '';
-                    const displayAttrs = attrsStr.length > 30 
-                      ? attrsStr.substring(0, 27) + "..." 
-                      : attrsStr;
+                    const boxWidth = 250;
 
                     return (
                       <g onClick={toggleNode} className="cursor-pointer transition-all hover:opacity-80">
-                        {/* Connecting dot */}
-                        <circle 
-                          r="5" 
-                          fill={hasChildren ? (isExpanded ? "#3b82f6" : "#60a5fa") : "#10b981"} 
-                        />
+                        {/* Left connecting dot (incoming line arrives here) */}
+                        <circle r="6" fill="#000000" />
                         
-                        <g transform={`translate(12, -${boxHeight / 2})`}>
-                          {/* Pill background */}
-                          <rect
-                            width={boxWidth}
-                            height={boxHeight}
-                            rx="8"
-                            fill={hasChildren ? "#1e293b" : "#0f172a"}
-                            stroke={hasChildren ? (isExpanded ? "#3b82f6" : "#475569") : "#10b981"}
-                            strokeWidth="1.5"
-                            style={{ filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.4))" }}
-                          />
-                          
-                          {/* Node Title */}
-                          <text
-                            fill="#f8fafc"
-                            x="16"
-                            y={boxHeight / 2 + (nodeDatum.attributes ? -4 : 4)}
-                            fontSize="13"
-                            fontWeight="600"
-                            className="select-none"
-                            title={nodeDatum.name}
+                        {/* Right connecting dot (outgoing line starts here) */}
+                        {hasChildren && (
+                          <circle r="4" fill="#000000" cx={boxWidth} cy="0" />
+                        )}
+
+                        {/* Node Card - Using foreignObject to allow actual HTML/Tailwind text wrapping */}
+                        <foreignObject x="12" y="-45" width={boxWidth - 12} height="150" style={{ pointerEvents: 'none' }}>
+                          <div 
+                            className="bg-white border-[1.5px] border-black rounded-lg shadow-sm p-3 flex flex-col"
+                            style={{ pointerEvents: 'auto' }}
                           >
-                            {displayName}
-                          </text>
-                          
-                          {/* Node Attributes */}
-                          {nodeDatum.attributes && (
-                            <text
-                              fill="#94a3b8"
-                              x="16"
-                              y={boxHeight / 2 + 13}
-                              fontSize="10"
-                              fontFamily="monospace"
-                              className="select-none"
-                            >
-                              {displayAttrs}
+                            <span className="text-black font-semibold text-[13px] leading-tight break-words mb-1" title={nodeDatum.name}>
+                              {nodeDatum.name}
+                            </span>
+                            
+                            {nodeDatum.attributes && (
+                              <div className="flex flex-col gap-0.5 border-t border-slate-100 mt-0.5 pt-1.5">
+                                {Object.entries(nodeDatum.attributes).map(([k, v]) => (
+                                  <span key={k} className="text-slate-600 font-mono text-[10px] leading-tight break-all">
+                                    <span className="font-bold text-slate-800">{k}:</span> {v}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </foreignObject>
+                        
+                        {/* Children count badge when collapsed */}
+                        {hasChildren && !isExpanded && (
+                          <g transform={`translate(${boxWidth - 10}, -15)`}>
+                            <circle cx="10" cy="10" r="12" fill="#000000" style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }}/>
+                            <text x="10" y="14" fill="#ffffff" fontSize="11" fontWeight="bold" textAnchor="middle">
+                              {nodeDatum._children.length}
                             </text>
-                          )}
-                          
-                          {/* Children count badge when collapsed */}
-                          {hasChildren && !isExpanded && (
-                            <g transform={`translate(${boxWidth - 24}, ${boxHeight / 2 - 10})`}>
-                              <circle cx="10" cy="10" r="10" fill="#3b82f6" />
-                              <text x="10" y="14" fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">
-                                {nodeDatum._children.length}
-                              </text>
-                            </g>
-                          )}
-                        </g>
+                          </g>
+                        )}
                       </g>
                     );
                   }}
