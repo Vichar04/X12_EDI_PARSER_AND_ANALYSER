@@ -5,6 +5,44 @@ const Home = () => {
   return (
     <>
       <Box component="main" sx={{ flexGrow: 1, p: 3, paddingTop: 10 }}>
+        {/* Prototype Warning Banner */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 1.5,
+            backgroundColor: "#fff3cd",
+            border: "1px solid #ffc107",
+            borderLeft: "5px solid #e65100",
+            borderRadius: "8px",
+            padding: "14px 18px",
+            marginBottom: 3,
+          }}
+        >
+          <span style={{ fontSize: "1.4rem", lineHeight: 1 }}>⚠️</span>
+          <Box>
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: "0.95rem",
+                color: "#7a3b00",
+                marginBottom: "4px",
+              }}
+            >
+              Prototype Notice
+            </Typography>
+            <Typography sx={{ fontSize: "0.88rem", color: "#5a3000", lineHeight: 1.6 }}>
+              This is an <strong>early prototype</strong>. Please be aware of the following
+              limitations:
+              <ul style={{ marginTop: "6px", marginLeft: "18px", listStyleType: "disc" }}>
+                <li>Only <strong>one file</strong> can be processed at a time — batch uploads are not supported.</li>
+                <li><strong>ZIP archives</strong> are not supported; please upload a plain <code>.edi</code> file.</li>
+                <li>Only <strong>X12 837</strong> (Healthcare Claim) EDI type is currently supported.</li>
+              </ul>
+            </Typography>
+          </Box>
+        </Box>
+
         <h1 className="text-2xl font-bold">
           AI-Powered X12 EDI Parser & Validator
         </h1>
