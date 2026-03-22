@@ -152,42 +152,88 @@ const ViewPage = () => {
                 <Tree 
                   data={treeData} 
                   orientation="horizontal"
-                  pathFunc="step"
                   translate={{ x: 50, y: 300 }}
-                  nodeSize={{ x: 220, y: 40 }}
-                  depthFactor={300}
+                  nodeSize={{ x: 280, y: 60 }}
+                  depthFactor={240}
                   renderCustomNodeElement={(rd3tProps) => {
                     const { nodeDatum, toggleNode } = rd3tProps;
-                    // Distinguish between Segment nodes and Element nodes
-                    const isElement = !!nodeDatum.attributes?.Element;
                     
+                    const hasChildren = (nodeDatum.children && nodeDatum.children.length > 0) || 
+                                        (nodeDatum._children && nodeDatum._children.length > 0);
+                    const isExpanded = nodeDatum.children && nodeDatum.children.length > 0;
+                    
+                    const boxWidth = 200;
+                    const boxHeight = 44;
+                    const maxTextLen = 22;
+                    
+                    const displayName = nodeDatum.name.length > maxTextLen 
+                      ? nodeDatum.name.substring(0, maxTextLen - 3) + "..." 
+                      : nodeDatum.name;
+
+                    const attrsStr = nodeDatum.attributes 
+                      ? Object.entries(nodeDatum.attributes).map(([k, v]) => `${k}:${v}`).join(' | ')
+                      : '';
+                    const displayAttrs = attrsStr.length > 30 
+                      ? attrsStr.substring(0, 27) + "..." 
+                      : attrsStr;
+
                     return (
-                      <g>
+                      <g onClick={toggleNode} className="cursor-pointer transition-all hover:opacity-80">
+                        {/* Connecting dot */}
                         <circle 
-                          r={isElement ? "5" : "8"} 
-                          fill={nodeDatum.children ? "#3b82f6" : (isElement ? "#10b981" : "#64748b")} 
-                          onClick={toggleNode}
+                          r="5" 
+                          fill={hasChildren ? (isExpanded ? "#3b82f6" : "#60a5fa") : "#10b981"} 
                         />
-                        <text 
-                          fill="#e2e8f0" 
-                          strokeWidth="0" 
-                          x="15" 
-                          dy={isElement ? "4" : "-5"}
-                          fontSize={isElement ? "12" : "14"}
-                          fontWeight={isElement ? "normal" : "bold"}
-                        >
-                          {nodeDatum.name}
-                        </text>
-                        {!isElement && nodeDatum.attributes?.Index !== undefined && (
-                          <text fill="#94a3b8" fontSize="10" x="15" dy="12">
-                            Index: {nodeDatum.attributes.Index}
+                        
+                        <g transform={`translate(12, -${boxHeight / 2})`}>
+                          {/* Pill background */}
+                          <rect
+                            width={boxWidth}
+                            height={boxHeight}
+                            rx="8"
+                            fill={hasChildren ? "#1e293b" : "#0f172a"}
+                            stroke={hasChildren ? (isExpanded ? "#3b82f6" : "#475569") : "#10b981"}
+                            strokeWidth="1.5"
+                            style={{ filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.4))" }}
+                          />
+                          
+                          {/* Node Title */}
+                          <text
+                            fill="#f8fafc"
+                            x="16"
+                            y={boxHeight / 2 + (nodeDatum.attributes ? -4 : 4)}
+                            fontSize="13"
+                            fontWeight="600"
+                            className="select-none"
+                            title={nodeDatum.name}
+                          >
+                            {displayName}
                           </text>
-                        )}
-                        {isElement && (
-                          <text fill="#94a3b8" fontSize="10" x="15" dy="20">
-                            {nodeDatum.attributes.Element}
-                          </text>
-                        )}
+                          
+                          {/* Node Attributes */}
+                          {nodeDatum.attributes && (
+                            <text
+                              fill="#94a3b8"
+                              x="16"
+                              y={boxHeight / 2 + 13}
+                              fontSize="10"
+                              fontFamily="monospace"
+                              className="select-none"
+                            >
+                              {displayAttrs}
+                            </text>
+                          )}
+                          
+                          {/* Children count badge when collapsed */}
+                          {hasChildren && !isExpanded && (
+                            <g transform={`translate(${boxWidth - 24}, ${boxHeight / 2 - 10})`}>
+                              <circle cx="10" cy="10" r="10" fill="#3b82f6" />
+                              <text x="10" y="14" fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">
+                                {nodeDatum._children.length}
+                              </text>
+                            </g>
+                          )}
+                        </g>
                       </g>
                     );
                   }}
