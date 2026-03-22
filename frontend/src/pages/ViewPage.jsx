@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineCheckCircle, AiOutlineWarning, AiOutlineCloseCircle } from "react-icons/ai";
 import Tree from "react-d3-tree";
@@ -62,6 +62,49 @@ const transformToTree = (data, nodeName = "EDI Document") => {
   return { name: String(nodeName), attributes: { Value: String(data) } };
 };
 
+// Helper to recursively find and sum all financial amount fields from the parsed EDI
+const extractFinancials = (data) => {
+  const totals = {};
+  let totalClaims = 0;
+  
+  const traverse = (obj) => {
+    if (!obj) return;
+    if (Array.isArray(obj)) {
+      obj.forEach(traverse);
+      return;
+    }
+    if (typeof obj === "object") {
+      Object.entries(obj).forEach(([key, value]) => {
+        // Special case: counting individual claims
+        if (key === "claimId" || key === "claimNumber") {
+           totalClaims++;
+        }
+        
+        if (typeof value === "object") {
+          traverse(value);
+        } else if (typeof value === "string" || typeof value === "number") {
+          // Look for amount-related keywords in the JSON keys
+          if (/(charge|paid|amount|balance|payment)/i.test(key)) {
+             const num = parseFloat(value);
+             if (!isNaN(num)) {
+               // Format key nicely, e.g. "totalCharge" -> "Total Charge"
+               const label = key
+                 .replace(/([A-Z])/g, ' $1')
+                 .replace(/^./, str => str.toUpperCase())
+                 .trim();
+                 
+               totals[label] = (totals[label] || 0) + num;
+             }
+          }
+        }
+      });
+    }
+  };
+  
+  traverse(data);
+  return { totals, totalClaims };
+};
+
 const ViewPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -83,6 +126,12 @@ const ViewPage = () => {
 
   const { parseEDIJson, valid, errors = [], warnings = [] } = data;
   const treeData = transformToTree(parseEDIJson);
+  
+  // Extract dynamic financial info from the parsed document
+  const { totals: financialAmounts, totalClaims } = extractFinancials(parseEDIJson);
+  const financialKeys = Object.keys(financialAmounts);
+
+  const [activeTab, setActiveTab] = useState("validation");
 
   return (
     <div className="px-4 py-6 w-full h-[calc(100vh-64px)]">
@@ -107,35 +156,79 @@ const ViewPage = () => {
           
           {/* Left Column: Validation & Raw JSON */}
           <div className="w-full lg:w-1/3 flex flex-col gap-6 h-full">
-            <Section title="Validation" className="shrink-0">
-              <div className="flex items-center gap-3">
-                <Badge ok={valid} />
-                {errors.length === 0 && warnings.length === 0 && (
-                  <span className="text-sm text-muted-foreground">No issues found</span>
-                )}
-              </div>
+            <Section title="Overview" className="shrink-0">
+               {/* Tab Buttons */}
+               <div className="flex space-x-6 border-b border-border mb-4">
+                 <button 
+                   onClick={() => setActiveTab('validation')}
+                   className={`pb-2 -mb-[1px] text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'validation' ? 'border-b-2 border-primary text-primary' : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'}`}
+                 >
+                    Validation
+                 </button>
+                 {(financialKeys.length > 0 || totalClaims > 0) && (
+                   <button 
+                     onClick={() => setActiveTab('financial')}
+                     className={`pb-2 -mb-[1px] text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'financial' ? 'border-b-2 border-primary text-primary' : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'}`}
+                   >
+                      Financials
+                   </button>
+                 )}
+               </div>
 
-              {errors.length > 0 && (
-                <ul className="mt-2 space-y-1">
-                  {errors.map((e, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-red-500">
-                      <AiOutlineCloseCircle className="mt-0.5 shrink-0" />
-                      {e}
-                    </li>
-                  ))}
-                </ul>
-              )}
+               {/* Tab Content */}
+               <div className="min-h-[120px]">
+                 {activeTab === 'validation' && (
+                   <div className="flex flex-col space-y-4">
+                     <div className="flex items-center gap-3">
+                       <Badge ok={valid} />
+                       {errors.length === 0 && warnings.length === 0 && (
+                         <span className="text-sm text-muted-foreground">No issues found</span>
+                       )}
+                     </div>
 
-              {warnings.length > 0 && (
-                <ul className="mt-2 space-y-1">
-                  {warnings.map((w, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-yellow-500">
-                      <AiOutlineWarning className="mt-0.5 shrink-0" />
-                      {w}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                     {errors.length > 0 && (
+                       <ul className="space-y-1">
+                         {errors.map((e, i) => (
+                           <li key={i} className="flex items-start gap-2 text-sm text-red-500">
+                             <AiOutlineCloseCircle className="mt-0.5 shrink-0" />
+                             {e}
+                           </li>
+                         ))}
+                       </ul>
+                     )}
+
+                     {warnings.length > 0 && (
+                       <ul className="space-y-1">
+                         {warnings.map((w, i) => (
+                           <li key={i} className="flex items-start gap-2 text-sm text-yellow-500">
+                             <AiOutlineWarning className="mt-0.5 shrink-0" />
+                             {w}
+                           </li>
+                         ))}
+                       </ul>
+                     )}
+                   </div>
+                 )}
+
+                 {activeTab === 'financial' && (financialKeys.length > 0 || totalClaims > 0) && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {totalClaims > 0 && (
+                        <div className="flex flex-col col-span-2 bg-slate-50 p-4 rounded-lg border-[1.5px] border-black items-center justify-center">
+                          <span className="text-3xl font-black text-black">{totalClaims}</span>
+                          <span className="text-xs text-slate-500 uppercase tracking-widest font-bold mt-1">Total Claims</span>
+                        </div>
+                      )}
+                      {financialKeys.map(key => (
+                        <div key={key} className="flex flex-col bg-white p-2.5 rounded border border-slate-200 shadow-sm col-span-1 overflow-hidden">
+                          <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold truncate mb-1" title={key}>{key}</span>
+                          <span className="text-sm font-black text-black truncate">
+                            ${financialAmounts[key].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                 )}
+               </div>
             </Section>
 
             <Section title="Parsed EDI Data (Raw)" className="flex-1 flex flex-col min-h-0">
