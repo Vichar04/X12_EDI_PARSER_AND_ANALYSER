@@ -188,17 +188,17 @@ const ViewPage = () => {
                         )}
 
                         {/* Node Card - Using foreignObject to allow actual HTML/Tailwind text wrapping */}
-                        <foreignObject x="12" y="-45" width={boxWidth - 12} height="150" style={{ pointerEvents: 'none' }}>
+                        <foreignObject x="12" y="-18" width={boxWidth - 12} height="500" style={{ pointerEvents: 'none', overflow: 'visible' }}>
                           <div 
-                            className="bg-white border-[1.5px] border-black rounded-lg shadow-sm p-3 flex flex-col"
+                            className="bg-white border-[1.5px] border-black rounded-lg shadow-sm p-2 px-3 flex flex-col group hover:shadow-md hover:z-50 relative"
                             style={{ pointerEvents: 'auto' }}
                           >
-                            <span className="text-black font-semibold text-[13px] leading-tight break-words mb-1" title={nodeDatum.name}>
+                            <span className="text-black font-semibold text-[13px] leading-tight break-words" title={nodeDatum.name}>
                               {nodeDatum.name}
                             </span>
                             
                             {nodeDatum.attributes && (
-                              <div className="flex flex-col gap-0.5 border-t border-slate-100 mt-0.5 pt-1.5">
+                              <div className="hidden group-hover:flex flex-col gap-0.5 border-t border-slate-200 mt-1.5 pt-1.5">
                                 {Object.entries(nodeDatum.attributes).map(([k, v]) => (
                                   <span key={k} className="text-slate-600 font-mono text-[10px] leading-tight break-all">
                                     <span className="font-bold text-slate-800">{k}:</span> {v}
