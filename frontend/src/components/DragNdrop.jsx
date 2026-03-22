@@ -4,7 +4,6 @@ import { MdClear } from "react-icons/md";
 import axios from "axios";
 
 // ── Change this to your real API base URL ─────────────────────────────────
-const API_BASE_URL = "http://localhost:6001";
 // ──────────────────────────────────────────────────────────────────────────
 
 const ALLOWED_EXTENSIONS = [".txt", ".edi", ".dat", ".x12", ".zip"];
@@ -53,7 +52,7 @@ const DragNdrop = ({ onUploadSuccess, className = "" }) => {
     setError(null);
 
     const ext = file.name.split('.').pop().toLowerCase();
-    const endpointUrl = `${API_BASE_URL}/${ext === 'zip' ? 'edi' : ext}`; // fallback for zip if needed, or just /ext
+    const endpointUrl = `${import.meta.env.VITE_BACKEND_API_BASE_URL}/${ext === 'zip' ? 'edi' : ext}`; // fallback for zip if needed, or just /ext
 
     const formData = new FormData();
     formData.append("file", file);
