@@ -15,14 +15,14 @@
  * @module index
  */
 
-'use strict';
+"use strict";
 
-const fs   = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const { detectSeparators } = require('./utils/separatorDetector');
-const { tokenize }         = require('./parser/tokenizer');
-const { EDIParser }        = require('./parser/ediParser');
+const { detectSeparators } = require("./utils/separatorDetector");
+const { tokenize } = require("./parser/tokenizer");
+const { EDIParser } = require("./parser/ediParser");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Core: parse an EDI string
@@ -36,8 +36,8 @@ const { EDIParser }        = require('./parser/ediParser');
  * @throws {Error}        - If the ISA segment is missing or malformed
  */
 function parseEDIString(rawEdi) {
-  if (typeof rawEdi !== 'string' || rawEdi.trim().length === 0) {
-    throw new Error('parseEDIString: input must be a non-empty string');
+  if (typeof rawEdi !== "string" || rawEdi.trim().length === 0) {
+    throw new Error("parseEDIString: input must be a non-empty string");
   }
 
   // Stage 1: Detect separators (never hardcode these!)
@@ -73,10 +73,10 @@ function parseEDI(filePath) {
   const absolutePath = path.resolve(filePath);
 
   if (!fs.existsSync(absolutePath)) {
-    throw new Error(`parseEDI: file not found — ${absolutePath}`);
+    throw new Error(`parseEDI: file cannot be parsed`);
   }
 
-  const rawEdi = fs.readFileSync(absolutePath, 'utf8');
+  const rawEdi = fs.readFileSync(absolutePath, "utf8");
   return parseEDIString(rawEdi);
 }
 
@@ -95,53 +95,55 @@ function parseEDI(filePath) {
  * @returns {{ valid: boolean, errors: string[], warnings: string[] }}
  */
 function validateEDI(parsedResult) {
-  const errors   = [];
+  const errors = [];
   const warnings = [];
 
   // Helper: push an error with a readable path label
-  const err  = (msg) => errors.push(msg);
+  const err = (msg) => errors.push(msg);
   const warn = (msg) => warnings.push(msg);
 
   // ── Interchange ───────────────────────────────────────────────────────────
   const ic = parsedResult.interchange || {};
-  if (!ic.controlNumber)   err('ISA13 (Interchange Control Number) is missing');
-  if (!ic.senderId)        err('ISA06 (Sender ID) is missing');
-  if (!ic.receiverId)      err('ISA08 (Receiver ID) is missing');
-  if (ic.usageIndicator === 'Production') {
-    warn('File is marked as Production — ensure this is intentional');
+  if (!ic.controlNumber) err("ISA13 (Interchange Control Number) is missing");
+  if (!ic.senderId) err("ISA06 (Sender ID) is missing");
+  if (!ic.receiverId) err("ISA08 (Receiver ID) is missing");
+  if (ic.usageIndicator === "Production") {
+    warn("File is marked as Production — ensure this is intentional");
   }
 
   // ── Group ────────────────────────────────────────────────────────────────
   const grp = parsedResult.group || {};
-  if (!grp.controlNumber)  err('GS06 (Group Control Number) is missing');
-  if (grp.functionalIdentifierCode && grp.functionalIdentifierCode !== 'HC') {
-    warn(`GS01 functional code is "${grp.functionalIdentifierCode}", expected "HC" for claims`);
+  if (!grp.controlNumber) err("GS06 (Group Control Number) is missing");
+  if (grp.functionalIdentifierCode && grp.functionalIdentifierCode !== "HC") {
+    warn(
+      `GS01 functional code is "${grp.functionalIdentifierCode}", expected "HC" for claims`,
+    );
   }
 
   // ── Transaction ───────────────────────────────────────────────────────────
   const tx = parsedResult.transaction || {};
-  if (!tx.transactionCode)         err('ST01 (Transaction Set Code) is missing');
-  if (tx.transactionCode && tx.transactionCode !== '837') {
+  if (!tx.transactionCode) err("ST01 (Transaction Set Code) is missing");
+  if (tx.transactionCode && tx.transactionCode !== "837") {
     warn(`ST01 is "${tx.transactionCode}", expected "837"`);
   }
-  if (!tx.header?.transactionDate) warn('BHT04 (Transaction Date) is missing');
+  if (!tx.header?.transactionDate) warn("BHT04 (Transaction Date) is missing");
 
   // ── Submitter ─────────────────────────────────────────────────────────────
   const sub = tx.submitter || {};
-  if (!sub.name) warn('Loop 1000A: Submitter name (NM103) is missing');
-  if (!sub.id)   warn('Loop 1000A: Submitter ID (NM109) is missing');
+  if (!sub.name) warn("Loop 1000A: Submitter name (NM103) is missing");
+  if (!sub.id) warn("Loop 1000A: Submitter ID (NM109) is missing");
 
   // ── Billing Providers & Hierarchy ─────────────────────────────────────────
   const providers = tx.billingProviders || [];
   if (providers.length === 0) {
-    err('No Billing Provider (HL level 20) found in the document');
+    err("No Billing Provider (HL level 20) found in the document");
   }
 
   providers.forEach((bp, bpIdx) => {
     const bpLabel = `BillingProvider[${bpIdx + 1}]`;
 
-    if (!bp.name)  warn(`${bpLabel}: NPI name (NM103) is missing`);
-    if (!bp.npi)   warn(`${bpLabel}: NPI number (NM109) is missing`);
+    if (!bp.name) warn(`${bpLabel}: NPI name (NM103) is missing`);
+    if (!bp.npi) warn(`${bpLabel}: NPI number (NM109) is missing`);
     if (!bp.taxId) warn(`${bpLabel}: Tax ID (REF*EI) is missing`);
 
     const subscribers = bp.subscribers || [];
@@ -152,8 +154,9 @@ function validateEDI(parsedResult) {
     subscribers.forEach((subscriber, subIdx) => {
       const subLabel = `${bpLabel}.Subscriber[${subIdx + 1}]`;
 
-      if (!subscriber.name)     warn(`${subLabel}: name (NM103) is missing`);
-      if (!subscriber.memberId) warn(`${subLabel}: member ID (NM109) is missing`);
+      if (!subscriber.name) warn(`${subLabel}: name (NM103) is missing`);
+      if (!subscriber.memberId)
+        warn(`${subLabel}: member ID (NM109) is missing`);
 
       const claims = subscriber.claims || [];
       if (claims.length === 0) {
@@ -164,7 +167,9 @@ function validateEDI(parsedResult) {
         const claimLabel = `${subLabel}.Claim[${claimIdx + 1}]`;
 
         if (!claim.claimId)
-          err(`${claimLabel}: CLM01 (Claim Submission Reason Code / Claim ID) is missing`);
+          err(
+            `${claimLabel}: CLM01 (Claim Submission Reason Code / Claim ID) is missing`,
+          );
         if (!claim.totalCharge || claim.totalCharge <= 0)
           warn(`${claimLabel}: CLM02 (Total Charge) is zero or missing`);
         if (!claim.diagnosisCodes || claim.diagnosisCodes.length === 0)
@@ -183,7 +188,8 @@ function validateEDI(parsedResult) {
       // Also check patient (dependent) claims
       const dependents = subscriber.dependents || [];
       dependents.forEach((dep, depIdx) => {
-        if (!dep.name) warn(`${subLabel}.Dependent[${depIdx + 1}]: name is missing`);
+        if (!dep.name)
+          warn(`${subLabel}.Dependent[${depIdx + 1}]: name is missing`);
       });
     });
   });
@@ -193,7 +199,7 @@ function validateEDI(parsedResult) {
   parserWarnings.forEach((w) => warn(`[Parser] ${w.message || w}`));
 
   return {
-    valid:    errors.length === 0,
+    valid: errors.length === 0,
     errors,
     warnings,
   };
@@ -208,26 +214,3 @@ module.exports = { parseEDI, parseEDIString, validateEDI };
 // ─────────────────────────────────────────────────────────────────────────────
 // CLI  (node src/index.js <path-to-file>)
 // ─────────────────────────────────────────────────────────────────────────────
-
-if (require.main === module) {
-  const filePath = process.argv[2];
-
-  if (!filePath) {
-    console.error('Usage: node src/index.js <path-to-edi-file>');
-    process.exit(1);
-  }
-
-  try {
-    const result     = parseEDI(filePath);
-    const validation = validateEDI(result);
-
-    console.log('\n═══ PARSED OUTPUT ═══════════════════════════════════════════');
-    console.log(JSON.stringify(result, null, 2));
-
-    console.log('\n═══ VALIDATION RESULT ════════════════════════════════════════');
-    console.log(JSON.stringify(validation, null, 2));
-  } catch (err) {
-    console.error(`\n✗ Parse error: ${err.message}`);
-    process.exit(1);
-  }
-}
