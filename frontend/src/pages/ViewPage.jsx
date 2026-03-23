@@ -32,15 +32,22 @@ const Badge = ({ ok }) =>
 // Helper to recursively transform the backend's structured JSON into react-d3-tree format
 const transformToTree = (data, nodeName = "EDI Document") => {
   if (data === null || data === undefined) {
-    return { name: String(data) };
+    return null; // Skip null/undefined values
   }
 
   if (Array.isArray(data)) {
+    if (data.length === 0) {
+      return null; // Skip empty arrays
+    }
+    const children = data
+      .map((item, index) => transformToTree(item, `${nodeName} [${index}]`))
+      .filter((child) => child !== null); // Filter out null children
+    if (children.length === 0) {
+      return null; // Skip arrays with no valid children
+    }
     return {
       name: nodeName,
-      children: data.map((item, index) =>
-        transformToTree(item, `${nodeName} [${index}]`),
-      ),
+      children,
     };
   }
 
@@ -53,15 +60,28 @@ const transformToTree = (data, nodeName = "EDI Document") => {
 
       if (typeof value === "object" && value !== null) {
         // If it's a nested object/array, it becomes a child node
-        children.push(transformToTree(value, key));
+        const childNode = transformToTree(value, key);
+        if (childNode !== null) {
+          children.push(childNode);
+        }
       } else {
+        // Skip empty primitive values
+        if (value === null || value === undefined || value === "") return;
         // Primitive values become leaf nodes formatted as properties
         children.push({
           name: `${key}: ${String(value)}`,
-          attributes: { isPropertyNode: "true", propKey: key, propValue: String(value) }
+          attributes: {
+            isPropertyNode: "true",
+            propKey: key,
+            propValue: String(value),
+          },
         });
       }
     });
+
+    if (children.length === 0) {
+      return null; // Skip objects with no valid children
+    }
 
     const node = { name: nodeName };
     if (children.length > 0) node.children = children;
@@ -69,7 +89,8 @@ const transformToTree = (data, nodeName = "EDI Document") => {
     return node;
   }
 
-  // Primitive fallback
+  // Primitive fallback, but skip empty strings
+  if (data === "") return null;
   return { name: String(nodeName), attributes: { Value: String(data) } };
 };
 
@@ -284,7 +305,7 @@ const ViewPage = () => {
           <div className="w-full lg:w-2/3 h-full pb-4">
             <Section
               title="EDI Tree Visualisation"
-              className="h-full flex flex-col bg-white"
+              className="h-full flex flex-col bg-black"
             >
               {/* Tree container background changed to white/slate-50 for a clean look */}
               <div
@@ -317,8 +338,10 @@ const ViewPage = () => {
                       (nodeDatum._children && nodeDatum._children.length > 0);
                     const isExpanded =
                       nodeDatum.children && nodeDatum.children.length > 0;
-                      
-                    const isProperty = nodeDatum.attributes && nodeDatum.attributes.isPropertyNode === "true";
+
+                    const isProperty =
+                      nodeDatum.attributes &&
+                      nodeDatum.attributes.isPropertyNode === "true";
 
                     const boxWidth = 250;
 
@@ -351,16 +374,23 @@ const ViewPage = () => {
                         >
                           <div
                             className={`border-[1.5px] rounded-lg shadow-sm p-2 px-3 flex flex-col group hover:shadow-md hover:z-50 relative transition-colors ${
-                              isProperty 
-                                ? "bg-amber-50/90 border-amber-400" 
+                              isProperty
+                                ? "bg-amber-50/90 border-amber-400"
                                 : "bg-white border-black"
                             }`}
                             style={{ pointerEvents: "auto" }}
                           >
                             {isProperty ? (
-                              <span className="text-[13px] leading-tight break-words" title={nodeDatum.name}>
-                                <span className="font-bold text-amber-900">{nodeDatum.attributes.propKey}:</span>{" "}
-                                <span className="font-mono text-slate-800 font-semibold">{nodeDatum.attributes.propValue}</span>
+                              <span
+                                className="text-[13px] leading-tight break-words"
+                                title={nodeDatum.name}
+                              >
+                                <span className="font-bold text-amber-900">
+                                  {nodeDatum.attributes.propKey}:
+                                </span>{" "}
+                                <span className="font-mono text-slate-800 font-semibold">
+                                  {nodeDatum.attributes.propValue}
+                                </span>
                               </span>
                             ) : (
                               <span
