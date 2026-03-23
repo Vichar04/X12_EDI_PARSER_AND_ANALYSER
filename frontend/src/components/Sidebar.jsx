@@ -17,7 +17,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Home from "../pages/Home";
-import Upload from "../pages/Upload";
+import Upload from "../pages/UploadPage";
 import Action from "../pages/Action";
 import AIChat from "../pages/AIChat";
 

@@ -1,1 +1,5 @@
 @import "tailwindcss";
+:root {
+  --code-color: #181818; /* Defines a global variable for a brand color */
+  --main-font: Helvetica, Arial, sans-serif; /* Defines a global variable for a font stack */
+}

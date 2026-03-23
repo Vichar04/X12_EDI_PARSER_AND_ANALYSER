@@ -1,5 +1,6 @@
 import React from "react";
 import { Sun, Moon, FileCode2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Header = ({ darkMode, onToggle }) => {
   return (
@@ -10,7 +11,7 @@ const Header = ({ darkMode, onToggle }) => {
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary text-primary-foreground shadow-md">
             <FileCode2 size={20} />
-          </div>
+          </div>  
           <div className="flex flex-col leading-tight">
             <span className="text-xl font-bold tracking-tight text-foreground">
               EDI Parser
@@ -23,9 +24,15 @@ const Header = ({ darkMode, onToggle }) => {
 
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-          <a href="#" className="hover:text-foreground transition-colors">Upload</a>
-          <a href="#" className="hover:text-foreground transition-colors">Docs</a>
-          <a href="#" className="hover:text-foreground transition-colors">About</a>
+          <Link to="/" className="hover:text-foreground transition-colors">
+            Upload
+          </Link>
+          <Link to="/docs" className="hover:text-foreground transition-colors">
+            Docs
+          </Link>
+          <Link to="/about" className="hover:text-foreground transition-colors">
+            About
+          </Link>
         </nav>
 
         {/* Dark / Light toggle */}
