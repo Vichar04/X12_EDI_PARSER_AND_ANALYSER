@@ -59,13 +59,13 @@ const Docs = () => {
       <section>
         <h2 className="text-2xl font-semibold mb-2">Sample Response</h2>
         <pre className="bg-gray-100 dark:bg-code rounded-lg p-4 text-xs overflow-x-auto">
-            {`{
-            "valid": true,
-            "transaction": {
-                "type": "837",
-                "claims": [...]
-            }
-            }`}
+{`{
+  "valid": true,
+  "transaction": {
+    "type": "837",
+    "claims": [...]
+  }
+}`}
         </pre>
       </section>
 
